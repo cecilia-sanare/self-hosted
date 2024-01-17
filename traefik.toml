@@ -80,3 +80,6 @@
     resolvers = ["8.8.8.8:53"]
 
 [retry]
+
+[accessLog]
+  filePath = "/traefik-access.log"

@@ -15,6 +15,8 @@ services:
       - ./acme.json:/acme.json
       # Log File (optional)
       - ./traefik.log:/traefik.log
+      # Log File (optional)
+      - ./traefik-access.log:/traefik-access.log
     ports:
       # The Web UI (enabled by --api.insecure=true in traefik.toml)
       - 8080:8080
@@ -35,12 +37,13 @@ services:
     volumes:
       - jellyfin-config:/config
       - jellyfin-cache:/cache
-      - /media:/media
+      - ~/media:/media
     restart: unless-stopped
     devices:
       # VAAPI Devices
       - /dev/dri/renderD128:/dev/dri/renderD128
-      - /dev/dri/card0:/dev/dri/card0
+      # TODO: Doesn't seem to be working under Rancher
+      # - /dev/dri/card0:/dev/dri/card0
     labels:
       - 'traefik.enable=true'
       ## HTTP Router
