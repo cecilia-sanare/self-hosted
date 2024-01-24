@@ -37,7 +37,7 @@ services:
     volumes:
       - jellyfin-config:/config
       - jellyfin-cache:/cache
-      - ~/media:/media
+      - /tmp/rancher-desktop/media:/media
     restart: unless-stopped
     devices:
       # VAAPI Devices
