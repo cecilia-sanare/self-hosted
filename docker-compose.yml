@@ -11,7 +11,7 @@ x-common:
     APP_URL: "https://${PANEL_DOMAIN}"
     # A list of valid timezones can be found here: http://php.net/manual/en/timezones.php
     APP_TIMEZONE: "America/Chicago"
-    APP_SERVICE_AUTHOR: "admin@cecilias.me"
+    APP_SERVICE_AUTHOR: "admin@sanare.dev"
   mail:
     &mail-environment
     MAIL_FROM: "noreply@rains.cafe"
@@ -71,7 +71,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.jellyfin.entrypoints=websecure
-      - traefik.http.routers.jellyfin.rule=Host(`fin.cecilias.me`)
+      - traefik.http.routers.jellyfin.rule=Host(`fin.sanare.dev`)
 
       # Middleware
       - traefik.http.routers.jellyfin.middlewares=jellyfin-mw
@@ -92,7 +92,7 @@ services:
       - traefik.http.middlewares.jellyfin-mw.headers.customresponseheaders.X-XSS-PROTECTION=0
       #### The customFrameOptionsValue allows the X-Frame-Options header value to be set with a custom value. This
       #### overrides the FrameDeny option.
-      - traefik.http.middlewares.jellyfin-mw.headers.customFrameOptionsValue='allow-from https://fin.cecilias.me'
+      - traefik.http.middlewares.jellyfin-mw.headers.customFrameOptionsValue='allow-from https://fin.sanare.dev'
 
   panel:
     image: ghcr.io/pterodactyl/panel:v1.11.5
@@ -154,7 +154,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.pterodactyl-wings.entrypoints=websecure
-      - traefik.http.routers.pterodactyl-wings.rule=Host(`node.cecilias.me`)
+      - traefik.http.routers.pterodactyl-wings.rule=Host(`node.sanare.dev`)
     env_file: .env
     depends_on:
       - panel
@@ -195,7 +195,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.cafe.entrypoints=websecure
-      - traefik.http.routers.cafe.rule=Host(`cafe.cecilias.me`)
+      - traefik.http.routers.cafe.rule=Host(`cafe.sanare.dev`)
     expose:
       - 3030
     depends_on:

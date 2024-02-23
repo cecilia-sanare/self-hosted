@@ -46,11 +46,11 @@
     [entryPoints.websecure.http.tls]
       certResolver = "leresolver"
       [[entryPoints.websecure.http.tls.domains]]
-        main = "*.cecilias.me"
+        main = "*.sanare.dev"
 
 # Enable ACME (Let's Encrypt): automatic SSL.
 [certificatesresolvers.leresolver.acme]
-  email = "admin@cecilias.me"
+  email = "admin@sanare.dev"
   storage = "acme.json"
 
   # Use a DNS-01 ACME challenge rather than HTTP-01 challenge.

@@ -26,4 +26,4 @@ docker:
     name: host
     driver: host
     network_mode: host
-remote: 'https://panel.cecilias.me'
+remote: 'https://panel.sanare.dev'
