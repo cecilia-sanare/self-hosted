@@ -49,8 +49,6 @@ services:
       - 80:80
       - 443:443
     env_file: .env
-    labels:
-      - traefik.enable=false
 
   jellyfin:
     image: jellyfin/jellyfin
@@ -121,8 +119,6 @@ services:
       - 80
     labels:
       - traefik.enable=true
-      # Also not getting respected from the config :roll_eyes:
-      - traefik.docker.network=servers_traefik
       - traefik.http.routers.pterodactyl-panel.entrypoints=websecure
       - traefik.http.routers.pterodactyl-panel.rule=Host(`${PANEL_DOMAIN}`)
     # healthcheck:
@@ -157,8 +153,6 @@ services:
       - ${SERVERS_DATA_FULL_PATH}:${SERVERS_DATA_FULL_PATH}
     labels:
       - traefik.enable=true
-      # Also not getting respected from the config :roll_eyes:
-      - traefik.docker.network=servers_traefik
       - traefik.http.routers.pterodactyl-wings.entrypoints=websecure
       - traefik.http.routers.pterodactyl-wings.rule=Host(`node.cecilias.me`)
     env_file: .env
@@ -180,9 +174,6 @@ services:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
       timeout: 1m
-    # TODO: Figure out why the actual fuck traefik isn't respecting the exposedByDefault flag
-    labels:
-      - traefik.enable=false
 
   cache:
     image: redis:alpine
@@ -191,8 +182,6 @@ services:
     volumes:
       - redis-cache:/data
     restart: always
-    labels:
-      - traefik.enable=false
 
 networks:
   traefik:

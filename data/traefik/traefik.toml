@@ -4,17 +4,6 @@
   level = "DEBUG"
   filePath = "/traefik.log"
 
-[docker]
-  # Defines a default docker network to use for connections to all
-  # containers.  This option can be overridden on a container basis
-  # with the traefik.docker.network label.
-  network = "servers_traefik"
-
-  # Expose containers by default through Traefik. If set to false,
-  # containers that don't have a traefik.enable=true label will be
-  # ignored from the resulting routing configuration.
-  exposedByDefault = false
-
 [api]
   # Enable the API in insecure mode, which means that the API will be
   # available directly on the entryPoint named traefik. If the entryPoint
@@ -28,9 +17,9 @@
   # Traefik works with both Docker (standalone) Engine and Docker Swarm Mode.
   # See: https://docs.traefik.io/providers/docker/
   [providers.docker]
-    # Traefik requires access to the docker socket to get its dynamic
-    # configuration.
+    network = "servers_traefik"
     endpoint = "unix:///var/run/docker.sock"
+    exposedByDefault = false
   [providers.file]
     filename = "/traefik-provider.toml"
 
