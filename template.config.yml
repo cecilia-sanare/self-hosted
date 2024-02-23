@@ -1,0 +1,29 @@
+debug: false
+uuid: <redacted>
+token_id: <redacted>
+token: <redacted>
+api:
+  host: 0.0.0.0
+  port: 443
+  ssl:
+    enabled: false
+    cert: 
+    key: 
+  upload_limit: 100
+system:
+  data: /home/ceci/repos/self-hosted/data/pterodactyl/wings/volumes
+  sftp:
+    bind_port: 2022
+  user:
+    rootless:
+      enabled: false
+      container_uid: 0
+      container_gid: 0
+    uid: 988
+    gid: 988
+docker:
+  network:
+    name: host
+    driver: host
+    network_mode: host
+remote: 'https://panel.cecilias.me'

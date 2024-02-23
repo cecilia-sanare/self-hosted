@@ -13,19 +13,11 @@ docker compose up -d
 docker compose exec -it panel php artisan p:user:make
 ```
 
-After `wings` starts up modify the [config.yml](data/pterodactyl/wings/etc/config.yml) to contain the following:
+After `wings` starts up copy the [template.config.yml](/template.config.yml) to `./data/pterodactyl/wings/etc/config.yml` and update the following after setting up your node:
 
-```yml
-# ...
-docker:
-  network:
-    # ...
-    name: host
-    network_mode: host
-    driver: host
-```
-
-This will ensure it binds the ports to your host machine rather then a subnet.
+- `uuid`
+- `token_id`
+- `token`
 
 **Linux Only**
 
