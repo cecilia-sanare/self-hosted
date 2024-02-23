@@ -139,7 +139,6 @@ services:
     restart: always
     networks:
       - traefik
-      - wings0
     ports:
       - 2022:2022
     expose:
@@ -201,13 +200,6 @@ networks:
     external: false
   local:
     external: false
-  wings0:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: "172.18.0.0/16"
-    driver_opts:
-      com.docker.network.bridge.name: wings0
 
 volumes:
   redis-cache:
