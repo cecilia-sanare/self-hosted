@@ -1,4 +1,5 @@
 version: '2.4'
+name: servers
 services:
   traefik:
     container_name: traefik
@@ -35,8 +36,8 @@ services:
     # Network mode of 'host' exposes the ports on the host. This is needed for DLNA access.
     network_mode: 'host'
     volumes:
-      - jellyfin-config:/config
-      - jellyfin-cache:/cache
+      - ./data/jellyfin/config:/config
+      - ./data/jellyfin/cache:/cache
       - /tmp/rancher-desktop/media:/media
     restart: unless-stopped
     devices:
@@ -93,37 +94,15 @@ services:
       - 'traefik.http.services.jellyfin-svc.loadBalancer.server.port=8096'
       - 'traefik.http.services.jellyfin-svc.loadBalancer.passHostHeader=true'
 
-  # TODO: Can't for the life of me get this to work right now because I can't access the usb devices
-  # altserver:
-  #   # Intentionally running in priviledged mode so that AltServer has access to every USB device that connects
-  #   image: altserver
-  #   build:
-  #     dockerfile: ./AltServer.Dockerfile
-  #   privileged: true
-  #   container_name: 'altserver'
-  #   restart: always
-  #   # Network mode of 'host' exposes the ports on the host. This is needed for Avahi
-  #   network_mode: host
-  #   environment:
-  #     ALTSERVER_ANISETTE_SERVER: http://127.0.0.1:6969
-  #   volumes:
-  #     - ./ipa:/altserver/ipa
-  #     - /dev:/dev
-
-  anisette-server:
-    image: dadoum/anisette-server:latest
-    container_name: 'anisette-server'
-    restart: always
-    user: 1000:1000
-    ports:
-      - 6969:6969
+  ark:
+    image: gameservermanagers/gameserver:ark
+    container_name: ark
+    restart: unless-stopped
     volumes:
-      - anisette-provision-config:/home/Chester/.config/Provision/
-
-volumes:
-  jellyfin-config:
-    driver: local
-  jellyfin-cache:
-    driver: local
-  anisette-provision-config:
-    driver: local
+      - ./data/ark:/data
+    network_mode: host
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 7G

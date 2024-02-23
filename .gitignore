@@ -3,7 +3,6 @@ traefik.log
 traefik-access.log
 acme.json
 ipa/
-AltServer-*
-anisette-server*
+data/
 
 5627E58B-F352-4488-B956-9B1DB6493A60
