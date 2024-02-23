@@ -1,8 +1,9 @@
-.env
-traefik.log
-traefik-access.log
-acme.json
+.env*
 ipa/
-data/
 
-5627E58B-F352-4488-B956-9B1DB6493A60
+# Ignore everything under data except the traefik configs
+data/*
+!data/traefik
+data/traefik/*
+!data/traefik/traefik.toml
+!data/traefik/traefik-provider.toml

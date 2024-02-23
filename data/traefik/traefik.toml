@@ -5,15 +5,15 @@
   filePath = "/traefik.log"
 
 [docker]
-  # Defines a default docker network to use for connections to all
-  # containers.  This option can be overridden on a container basis
-  # with the traefik.docker.network label.
-  network = "traefik"
+# Defines a default docker network to use for connections to all
+# containers.  This option can be overridden on a container basis
+# with the traefik.docker.network label.
+network = "traefik"
 
-  # Expose containers by default through Traefik. If set to false,
-  # containers that don't have a traefik.enable=true label will be
-  # ignored from the resulting routing configuration.
-  exposedbydefault = false
+# Expose containers by default through Traefik. If set to false,
+# containers that don't have a traefik.enable=true label will be
+# ignored from the resulting routing configuration.
+exposedByDefault = false
 
 [api]
   # Enable the API in insecure mode, which means that the API will be
@@ -50,25 +50,20 @@
         [entryPoints.http.http.redirections.entrypoint]
           to = "https"
           scheme = "https"
+
   # Standard HTTPS
   [entryPoints.https]
     address = ":443"
     [entryPoints.https.http.tls]
       certResolver = "leresolver"
       [[entryPoints.https.http.tls.domains]]
-        main = "fin.cecilias.me"
-        # SANS are any other hostnames which Traefik should obtain a certificate for.
-        # If you are using DNS for LetsEncrypt, you can set a wildcard.
-        # Include all possible hostnames of this server.
-        #sans = ["*.DOMAIN_NAME"]
+        main = "*.cecilias.me"
 
 # Enable ACME (Let's Encrypt): automatic SSL.
 [certificatesresolvers.leresolver.acme]
   email = "admin@cecilias.me"
   storage = "acme.json"
-  # Use HTTP-01 ACME challenge
-  #[certificateresolvers.leresolver.acme.httpChallenge]
-  #  entryPoint = "http"
+
   # Use a DNS-01 ACME challenge rather than HTTP-01 challenge.
   # Mandatory for wildcard certificate generation.
   [certificatesresolvers.leresolver.acme.dnsChallenge]

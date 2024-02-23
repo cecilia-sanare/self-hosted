@@ -1,23 +1,47 @@
 version: '2.4'
+x-common:
+  database:
+    &db-environment
+    # Do not remove the "&db-password" from the end of the line below, it is important
+    # for Panel functionality.
+    MYSQL_PASSWORD: &db-password "22c85ce0202a3db49c7a6aced31c8616"
+    MYSQL_ROOT_PASSWORD: "d661a12cc92de0d6f86a66631afce6af"
+  panel:
+    &panel-environment
+    APP_URL: "https://${PANEL_DOMAIN}"
+    # A list of valid timezones can be found here: http://php.net/manual/en/timezones.php
+    APP_TIMEZONE: "UTC"
+    APP_SERVICE_AUTHOR: "admin@cecilias.me"
+  mail:
+    &mail-environment
+    MAIL_FROM: "noreply@rains.cafe"
+    MAIL_DRIVER: "smtp"
+    MAIL_HOST: "smtp.gmail.com"
+    MAIL_PORT: "465"
+    MAIL_USERNAME: "${MAIL_USERNAME}"
+    MAIL_PASSWORD: "${MAIL_PASSWORD}"
+    MAIL_ENCRYPTION: "true"
+
 name: servers
 services:
   traefik:
-    container_name: traefik
-    image: traefik:chevrotin # the chevrotin tag refers to v2.2.x
+    image: traefik:beaufort
     restart: unless-stopped
     volumes:
       # So that Traefik can listen to the Docker events (read-only)
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock:z
       # TOML Configuration with global options
-      - ./traefik.toml:/traefik.toml
+      - ${DATA_DIR}/traefik/traefik.toml:/traefik.toml
       # Configuration for the file provider (needed for host networking and default TLS Options)
-      - ./traefik-provider.toml:/traefik-provider.toml
+      - ${DATA_DIR}/traefik/traefik-provider.toml:/traefik-provider.toml
       # LetsEncrypt ACME Configuration
-      - ./acme.json:/acme.json
+      - ${DATA_DIR}/traefik/acme.json:/acme.json
       # Log File (optional)
-      - ./traefik.log:/traefik.log
+      - ${DATA_DIR}/traefik/traefik.log:/traefik.log
       # Log File (optional)
-      - ./traefik-access.log:/traefik-access.log
+      - ${DATA_DIR}/traefik/traefik-access.log:/traefik-access.log
+    networks:
+      - traefik
     ports:
       # The Web UI (enabled by --api.insecure=true in traefik.toml)
       - 8080:8080
@@ -28,16 +52,16 @@ services:
 
   jellyfin:
     image: jellyfin/jellyfin
-    container_name: 'jellyfin'
-    user: 1000:1000
     group_add: # by id as these may not exist within the container. Needed to provide permissions to the VAAPI Devices
       - '107' #render
       - '44' #video
-    # Network mode of 'host' exposes the ports on the host. This is needed for DLNA access.
-    network_mode: 'host'
+    networks:
+      - traefik
+    expose:
+      - 8096
     volumes:
-      - ./data/jellyfin/config:/config
-      - ./data/jellyfin/cache:/cache
+      - ${DATA_DIR}/jellyfin/config:/config
+      - ${DATA_DIR}/jellyfin/cache:/cache
       - /tmp/rancher-desktop/media:/media
     restart: unless-stopped
     devices:
@@ -58,19 +82,9 @@ services:
       - 'traefik.http.routers.jellyfin.tls=true'
       - 'traefik.http.routers.jellyfin.tls.certResolver=leresolver'
       - 'traefik.http.routers.jellyfin.tls.domains=fin.cecilias.me'
-      ## Middleware
+      # Middleware
       - 'traefik.http.routers.jellyfin.middlewares=jellyfin-mw'
-      #### The customResponseHeaders option lists the Header names and values to apply to the response.
       - 'traefik.http.middlewares.jellyfin-mw.headers.customResponseHeaders.X-Robots-Tag=noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex'
-      #### The sslRedirect is set to true, then only allow https requests.
-      - 'traefik.http.middlewares.jellyfin-mw.headers.SSLRedirect=true'
-      #### The sslHost option is the host name that is used to redirect http requests to https.
-      #### This is the exact URL that will be redirected to, so you can remove the :9999 port if using default SSL port
-      - 'traefik.http.middlewares.jellyfin-mw.headers.SSLHost=fin.cecilias.me'
-      #### Set sslForceHost to true and set SSLHost to forced requests to use SSLHost even the ones that are already using SSL.
-      #### Note that this uses SSLHost verbatim, so add the port to SSLHost if you are using an alternate port.
-      - 'traefik.http.middlewares.jellyfin-mw.headers.SSLForceHost=true'
-      #### The stsSeconds is the max-age of the Strict-Transport-Security header. If set to 0, would NOT include the header.
       - 'traefik.http.middlewares.jellyfin-mw.headers.STSSeconds=315360000'
       #### The stsIncludeSubdomains is set to true, the includeSubDomains directive will be
       #### appended to the Strict-Transport-Security header.
@@ -90,6 +104,119 @@ services:
       - "traefik.http.middlewares.jellyfin-mw.headers.customFrameOptionsValue='allow-from https://fin.cecilias.me'"
       ## HTTP Service
       # We define the port here as a port is required, but note that the service is pointing to the service defined in @file
-      - 'traefik.http.routers.jellyfin.service=jellyfin-svc@file'
+      - 'traefik.http.routers.jellyfin.service=jellyfin-svc'
+      # - 'traefik.http.routers.jellyfin.service=jellyfin-svc@file'
       - 'traefik.http.services.jellyfin-svc.loadBalancer.server.port=8096'
       - 'traefik.http.services.jellyfin-svc.loadBalancer.passHostHeader=true'
+
+  database:
+    image: mysql:8.0
+    restart: always
+    networks:
+      - local
+    volumes:
+      - "${DATA_DIR}/pterodactyl/database:/var/lib/mysql:rw"
+    # expose:
+    #   - 3306
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 1m
+    environment:
+      <<: *db-environment
+      MYSQL_DATABASE: "panel"
+      MYSQL_USER: "pterodactyl"
+    # TODO: Figure out why the actual fuck traefik isn't respecting the exposedByDefault flag
+    labels:
+      - 'traefik.enable=false'
+
+  cache:
+    image: redis:alpine
+    volumes:
+      - redis-cache:/data
+    restart: always
+    # expose:
+    #   - 6379
+    networks:
+      - local
+    labels:
+      - 'traefik.enable=false'
+
+  panel:
+    image: ghcr.io/pterodactyl/panel:v1.9.1
+    restart: always
+    networks:
+      - traefik
+      - local
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - "${DATA_DIR}/pterodactyl/panel/var/:/app/var/"
+      - "${DATA_DIR}/pterodactyl/panel/logs/:/app/storage/logs"
+      - "${DATA_DIR}/pterodactyl/panel/nginx/:/etc/nginx/conf.d/"
+    expose:
+      - 80
+    environment:
+      <<: [*panel-environment, *mail-environment]
+      DB_PASSWORD: *db-password
+      APP_ENV: "production"
+      APP_ENVIRONMENT_ONLY: "false"
+      CACHE_DRIVER: "redis"
+      SESSION_DRIVER: "redis"
+      QUEUE_DRIVER: "redis"
+      REDIS_HOST: "cache"
+      DB_HOST: "database"
+      TRUSTED_PROXIES: "*"
+    labels:
+      - 'traefik.enable=true'
+      - "traefik.http.routers.pterodactyl-panel-https.entrypoints=https"
+      - "traefik.http.routers.pterodactyl-panel-https.rule=Host(`${PANEL_DOMAIN}`)"
+      - "traefik.http.routers.pterodactyl-panel-https.tls=true"
+      - "traefik.http.routers.pterodactyl-panel-https.tls.certresolver=leresolver"
+      - "traefik.http.services.pterodactyl-panel-https.loadbalancer.server.port=80"
+
+  wings:
+    image: ghcr.io/pterodactyl/wings:v1.6.4
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - traefik
+    ports:
+      - 2022:2022
+    expose:
+      - 443
+    tty: true
+    environment:
+      TZ: "UTC"
+      WINGS_UID: 988
+      WINGS_GID: 988
+      WINGS_USERNAME: pterodactyl
+    volumes:
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
+      - /run/user/1000/containers/overlay-containers/:/var/lib/docker/containers/
+      # - "/var/lib/docker/containers/:/var/lib/docker/containers/"
+      # - "/tmp/pterodactyl/:/tmp/pterodactyl/"
+      - "${DATA_DIR}/pterodactyl/wings/etc/:/etc/pterodactyl/"
+      - "${DATA_DIR}/pterodactyl/wings/logs:/var/log/pterodactyl/"
+      - "${DATA_DIR}/pterodactyl/wings/node:${SERVERS_DATA_FULL_PATH}"
+    labels:
+      - 'traefik.enable=true'
+      - "traefik.http.routers.pterodactyl_wings-https.entrypoints=https"
+      - "traefik.http.routers.pterodactyl_wings-https.rule=Host(`${WINGS_DOMAIN}`)"
+      - "traefik.http.routers.pterodactyl_wings-https.tls=true"
+      - "traefik.http.routers.pterodactyl_wings-https.tls.certresolver=leresolver"
+      - "traefik.http.services.pterodactyl_wings-https.loadbalancer.server.port=443"
+    depends_on:
+      - panel
+
+networks:
+  traefik:
+    driver: bridge
+  local:
+    driver: bridge
+
+volumes:
+  redis-cache:
+    driver: local
