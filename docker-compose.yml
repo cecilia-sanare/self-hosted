@@ -25,11 +25,11 @@ x-common:
 name: servers
 services:
   traefik:
-    image: traefik:beaufort
+    image: traefik:v2.10
     restart: unless-stopped
     volumes:
       # So that Traefik can listen to the Docker events (read-only)
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock:z
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       # TOML Configuration with global options
       - ${DATA_DIR}/traefik/traefik.toml:/traefik.toml
       # Configuration for the file provider (needed for host networking and default TLS Options)
@@ -49,6 +49,8 @@ services:
       - 80:80
       - 443:443
     env_file: .env
+    labels:
+      - traefik.enable=false
 
   jellyfin:
     image: jellyfin/jellyfin
@@ -67,88 +69,44 @@ services:
       - /dev/dri/renderD128:/dev/dri/renderD128
       # TODO: Doesn't seem to be working under Rancher
       # - /dev/dri/card0:/dev/dri/card0
+    expose:
+      - 8096
     labels:
-      - 'traefik.enable=true'
-      ## HTTP Router
-      #### Entry point where Jellyfin is accessible via
-      #### Change secure to https in the line below to have accessible without needing to specify a port and change the SSLHost option below
-      - 'traefik.http.routers.jellyfin.entryPoints=https'
-      #### Host or Path where Jellyfin is accessible
-      #### Remove (or change) this rule if you'd rather have Jellyfin accessible at a PathPrefix URI
-      - 'traefik.http.routers.jellyfin.rule=Host(`fin.cecilias.me`)' # OPTIONAL: && PathPrefix(`/jellyfin`)
-      #### Enable TLS with the ACME/LetsEncrypt resolver for HOSTNAME.DOMAIN_NAME
-      - 'traefik.http.routers.jellyfin.tls=true'
-      - 'traefik.http.routers.jellyfin.tls.certResolver=leresolver'
-      - 'traefik.http.routers.jellyfin.tls.domains=fin.cecilias.me'
+      - traefik.enable=true
+      - traefik.http.routers.jellyfin.entrypoints=websecure
+      - traefik.http.routers.jellyfin.rule=Host(`fin.cecilias.me`)
+
       # Middleware
-      - 'traefik.http.routers.jellyfin.middlewares=jellyfin-mw'
-      - 'traefik.http.middlewares.jellyfin-mw.headers.customResponseHeaders.X-Robots-Tag=noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex'
-      - 'traefik.http.middlewares.jellyfin-mw.headers.STSSeconds=315360000'
+      - traefik.http.routers.jellyfin.middlewares=jellyfin-mw
+      - traefik.http.middlewares.jellyfin-mw.headers.customResponseHeaders.X-Robots-Tag=noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+      - traefik.http.middlewares.jellyfin-mw.headers.STSSeconds=315360000
       #### The stsIncludeSubdomains is set to true, the includeSubDomains directive will be
       #### appended to the Strict-Transport-Security header.
-      - 'traefik.http.middlewares.jellyfin-mw.headers.STSIncludeSubdomains=true'
+      - traefik.http.middlewares.jellyfin-mw.headers.STSIncludeSubdomains=true
       #### Set stsPreload to true to have the preload flag appended to the Strict-Transport-Security header.
-      - 'traefik.http.middlewares.jellyfin-mw.headers.STSPreload=true'
+      - traefik.http.middlewares.jellyfin-mw.headers.STSPreload=true
       #### Set forceSTSHeader to true, to add the STS header even when the connection is HTTP.
-      - 'traefik.http.middlewares.jellyfin-mw.headers.forceSTSHeader=true'
+      - traefik.http.middlewares.jellyfin-mw.headers.forceSTSHeader=true
       #### Set frameDeny to true to add the X-Frame-Options header with the value of DENY.
-      - 'traefik.http.middlewares.jellyfin-mw.headers.frameDeny=true'
+      - traefik.http.middlewares.jellyfin-mw.headers.frameDeny=true
       #### Set contentTypeNosniff to true to add the X-Content-Type-Options header with the value nosniff.
-      - 'traefik.http.middlewares.jellyfin-mw.headers.contentTypeNosniff=true'
+      - traefik.http.middlewares.jellyfin-mw.headers.contentTypeNosniff=true
       #### Set browserXssFilter to true to add the X-XSS-Protection header with the value 1; mode=block.
-      - 'traefik.http.middlewares.jellyfin-mw.headers.customresponseheaders.X-XSS-PROTECTION=0'
+      - traefik.http.middlewares.jellyfin-mw.headers.customresponseheaders.X-XSS-PROTECTION=0
       #### The customFrameOptionsValue allows the X-Frame-Options header value to be set with a custom value. This
       #### overrides the FrameDeny option.
-      - "traefik.http.middlewares.jellyfin-mw.headers.customFrameOptionsValue='allow-from https://fin.cecilias.me'"
-      ## HTTP Service
-      # We define the port here as a port is required, but note that the service is pointing to the service defined in @file
-      - 'traefik.http.routers.jellyfin.service=jellyfin-svc'
-      # - 'traefik.http.routers.jellyfin.service=jellyfin-svc@file'
-      - 'traefik.http.services.jellyfin-svc.loadBalancer.server.port=8096'
-      - 'traefik.http.services.jellyfin-svc.loadBalancer.passHostHeader=true'
-
-  database:
-    image: mysql:8.0
-    restart: always
-    networks:
-      - local
-    volumes:
-      - "${DATA_DIR}/pterodactyl/database:/var/lib/mysql:rw"
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 1m
-    environment:
-      <<: *db-environment
-      MYSQL_DATABASE: "panel"
-      MYSQL_USER: "pterodactyl"
-    # TODO: Figure out why the actual fuck traefik isn't respecting the exposedByDefault flag
-    labels:
-      - 'traefik.enable=false'
-
-  cache:
-    image: redis:alpine
-    volumes:
-      - redis-cache:/data
-    restart: always
-    labels:
-      - 'traefik.enable=false'
-    networks:
-      - local
+      - traefik.http.middlewares.jellyfin-mw.headers.customFrameOptionsValue='allow-from https://fin.cecilias.me'
 
   panel:
-    image: ghcr.io/pterodactyl/panel:v1.9.1
+    image: ghcr.io/pterodactyl/panel:v1.11.5
     restart: always
     networks:
       - traefik
       - local
-    depends_on:
-      database:
-        condition: service_healthy
     volumes:
-      - "${DATA_DIR}/pterodactyl/panel/var/:/app/var/"
-      - "${DATA_DIR}/pterodactyl/panel/logs/:/app/storage/logs"
-      - "${DATA_DIR}/pterodactyl/panel/nginx/:/etc/nginx/conf.d/"
+      - ${DATA_DIR}/pterodactyl/panel/var/:/app/var/
+      - ${DATA_DIR}/pterodactyl/panel/logs/:/app/storage/logs
+      - ${DATA_DIR}/pterodactyl/panel/nginx/:/etc/nginx/conf.d/
     environment:
       <<: [*panel-environment, *mail-environment]
       DB_PASSWORD: *db-password
@@ -160,23 +118,32 @@ services:
       REDIS_HOST: "cache"
       DB_HOST: "database"
       TRUSTED_PROXIES: "*"
+    expose:
+      - 80
     labels:
-      - 'traefik.enable=true'
-      - "traefik.http.routers.pterodactyl-panel-https.entrypoints=https"
-      - "traefik.http.routers.pterodactyl-panel-https.rule=Host(`${PANEL_DOMAIN}`)"
-      - "traefik.http.routers.pterodactyl-panel-https.tls=true"
-      - "traefik.http.routers.pterodactyl-panel-https.tls.certresolver=leresolver"
-      - "traefik.http.services.pterodactyl-panel-https.loadbalancer.server.port=80"
+      - traefik.enable=true
+      # Also not getting respected from the config :roll_eyes:
+      - traefik.docker.network=servers_traefik
+      - traefik.http.routers.pterodactyl-panel.entrypoints=websecure
+      - traefik.http.routers.pterodactyl-panel.rule=Host(`${PANEL_DOMAIN}`)
+    # healthcheck:
+    #   test: ["CMD", "curl" ,"localhost"]
+    #   interval: 10s
+    #   timeout: 1m
+    depends_on:
+      database:
+        condition: service_healthy
 
   wings:
-    image: ghcr.io/pterodactyl/wings:v1.6.4
-    env_file:
-      - .env
+    image: ghcr.io/pterodactyl/wings:v1.11.8
     restart: always
     networks:
       - traefik
+      - wings0
     ports:
       - 2022:2022
+    expose:
+      - 443
     tty: true
     environment:
       TZ: "UTC"
@@ -184,28 +151,63 @@ services:
       WINGS_GID: 988
       WINGS_USERNAME: pterodactyl
     volumes:
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
-      - /run/user/1000/containers/overlay-containers/:/var/lib/docker/containers/
-      # - "/var/lib/docker/containers/:/var/lib/docker/containers/"
-      # - "/tmp/pterodactyl/:/tmp/pterodactyl/"
-      - "${DATA_DIR}/pterodactyl/wings/etc/:/etc/pterodactyl/"
-      - "${DATA_DIR}/pterodactyl/wings/logs:/var/log/pterodactyl/"
-      - "${DATA_DIR}/pterodactyl/wings/node:${SERVERS_DATA_FULL_PATH}"
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers/:/var/lib/docker/containers/
+      - /tmp/pterodactyl/:/tmp/pterodactyl/
+      - ${DATA_DIR}/pterodactyl/wings/etc/:/etc/pterodactyl/
+      - ${DATA_DIR}/pterodactyl/wings/logs:/var/log/pterodactyl/
+      - ${SERVERS_DATA_FULL_PATH}:${SERVERS_DATA_FULL_PATH}
     labels:
-      - 'traefik.enable=true'
-      - "traefik.http.routers.pterodactyl-wings-https.entrypoints=https"
-      - "traefik.http.routers.pterodactyl-wings-https.rule=Host(`${WINGS_DOMAIN}`)"
-      - "traefik.http.routers.pterodactyl-wings-https.tls=true"
-      - "traefik.http.routers.pterodactyl-wings-https.tls.certresolver=leresolver"
-      - "traefik.http.services.pterodactyl-wings-https.loadbalancer.server.port=443"
+      - traefik.enable=true
+      # Also not getting respected from the config :roll_eyes:
+      - traefik.docker.network=servers_traefik
+      - traefik.http.routers.pterodactyl-wings.entrypoints=websecure
+      - traefik.http.routers.pterodactyl-wings.rule=Host(`node.cecilias.me`)
+    env_file: .env
     depends_on:
       - panel
 
+  database:
+    image: mysql:8.0
+    restart: always
+    networks:
+      - local
+    volumes:
+      - ${DATA_DIR}/pterodactyl/database:/var/lib/mysql
+    environment:
+      <<: *db-environment
+      MYSQL_DATABASE: "panel"
+      MYSQL_USER: "pterodactyl"
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 1m
+    # TODO: Figure out why the actual fuck traefik isn't respecting the exposedByDefault flag
+    labels:
+      - traefik.enable=false
+
+  cache:
+    image: redis:alpine
+    networks:
+      - local
+    volumes:
+      - redis-cache:/data
+    restart: always
+    labels:
+      - traefik.enable=false
+
 networks:
   traefik:
-    driver: bridge
+    external: false
   local:
+    external: false
+  wings0:
     driver: bridge
+    ipam:
+      config:
+        - subnet: "172.18.0.0/16"
+    driver_opts:
+      com.docker.network.bridge.name: wings0
 
 volumes:
   redis-cache:

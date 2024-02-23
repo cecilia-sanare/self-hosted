@@ -8,9 +8,9 @@
 
 ```sh
 # Start all the services
-docker-compose up -d
+docker compose up -d
 # Create a user for Pterodactyl Panel
-docker-compose exec -it panel php artisan p:user:make
+docker compose exec -it panel php artisan p:user:make
 ```
 
 **Linux Only**

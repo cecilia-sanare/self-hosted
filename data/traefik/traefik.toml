@@ -5,15 +5,15 @@
   filePath = "/traefik.log"
 
 [docker]
-# Defines a default docker network to use for connections to all
-# containers.  This option can be overridden on a container basis
-# with the traefik.docker.network label.
-network = "traefik"
+  # Defines a default docker network to use for connections to all
+  # containers.  This option can be overridden on a container basis
+  # with the traefik.docker.network label.
+  network = "servers_traefik"
 
-# Expose containers by default through Traefik. If set to false,
-# containers that don't have a traefik.enable=true label will be
-# ignored from the resulting routing configuration.
-exposedByDefault = false
+  # Expose containers by default through Traefik. If set to false,
+  # containers that don't have a traefik.enable=true label will be
+  # ignored from the resulting routing configuration.
+  exposedByDefault = false
 
 [api]
   # Enable the API in insecure mode, which means that the API will be
@@ -43,20 +43,20 @@ exposedByDefault = false
 # then the default configuration does not apply at all.
 [entryPoints]
   # Standard HTTP redirects to HTTPS
-  [entryPoints.http]
+  [entryPoints.web]
     address = ":80"
-    [entryPoints.http.http]
-      [entryPoints.http.http.redirections]
-        [entryPoints.http.http.redirections.entrypoint]
-          to = "https"
+    [entryPoints.web.http]
+      [entryPoints.web.http.redirections]
+        [entryPoints.web.http.redirections.entrypoint]
+          to = "websecure"
           scheme = "https"
 
   # Standard HTTPS
-  [entryPoints.https]
+  [entryPoints.websecure]
     address = ":443"
-    [entryPoints.https.http.tls]
+    [entryPoints.websecure.http.tls]
       certResolver = "leresolver"
-      [[entryPoints.https.http.tls.domains]]
+      [[entryPoints.websecure.http.tls.domains]]
         main = "*.cecilias.me"
 
 # Enable ACME (Let's Encrypt): automatic SSL.
