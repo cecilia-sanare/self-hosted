@@ -15,5 +15,5 @@ docker-compose up -d
 Allow running apps on lower port ranges without sudo:
 
 ```sh
-sudo sysctl net.ipv4.ip_unprivileged_port_start=0
+sudo sysctl -w net.ipv4.ip_unprivileged_port_start=0
 ```
