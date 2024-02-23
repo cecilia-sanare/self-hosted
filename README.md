@@ -7,7 +7,7 @@
 ### Getting Started
 
 ```sh
-docker-compose up -d
+docker compose up -d
 ```
 
 **Linux Only**
