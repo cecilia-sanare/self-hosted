@@ -10,7 +10,7 @@ x-common:
     &panel-environment
     APP_URL: "https://${PANEL_DOMAIN}"
     # A list of valid timezones can be found here: http://php.net/manual/en/timezones.php
-    APP_TIMEZONE: "UTC"
+    APP_TIMEZONE: "America/Chicago"
     APP_SERVICE_AUTHOR: "admin@cecilias.me"
   mail:
     &mail-environment
@@ -144,7 +144,7 @@ services:
       - 443
     tty: true
     environment:
-      TZ: "UTC"
+      TZ: "CST"
       WINGS_UID: 988
       WINGS_GID: 988
       WINGS_USERNAME: pterodactyl
