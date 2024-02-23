@@ -183,6 +183,36 @@ services:
       - redis-cache:/data
     restart: always
 
+  cafe:
+    image: ghcr.io/cecilia-sanare/cafe:latest
+    environment:
+      - RUST_LOG=debug
+      - DATABASE_URL=postgres://postgres:postgres@cafe-database:5432/cafe
+    tty: true
+    networks:
+      - traefik
+      - local
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.cafe.entrypoints=websecure
+      - traefik.http.routers.cafe.rule=Host(`cafe.cecilias.me`)
+    expose:
+      - 3030
+    depends_on:
+      - cafe-database
+
+  cafe-database:
+    image: postgres:16-alpine
+    restart: always
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=cafe
+    networks:
+      - local
+
 networks:
   traefik:
     external: false
