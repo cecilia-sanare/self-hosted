@@ -7,17 +7,8 @@
 ### Getting Started
 
 ```sh
-# Start all the services
-docker compose up -d
-# Create a user for Pterodactyl Panel
-docker compose exec -it panel php artisan p:user:make
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/cecilia-sanare/self-hosted/main/setup.sh)"
 ```
-
-After `wings` starts up copy the [template.config.yml](/template.config.yml) to `./data/pterodactyl/wings/etc/config.yml` and update the following after setting up your node:
-
-- `uuid`
-- `token_id`
-- `token`
 
 **Linux Only**
 
