@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     volumes:
       # So that Traefik can listen to the Docker events (read-only)
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock:ro
       # TOML Configuration with global options
       - ${DATA_DIR}/traefik/traefik.toml:/traefik.toml
       # Configuration for the file provider (needed for host networking and default TLS Options)
@@ -33,6 +33,7 @@ services:
     group_add: # by id as these may not exist within the container. Needed to provide permissions to the VAAPI Devices
       - '107' #render
       - '44' #video
+    tty: true
     networks:
       - traefik
     volumes:
