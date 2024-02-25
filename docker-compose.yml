@@ -1,26 +1,4 @@
 version: '2.4'
-x-common:
-  database:
-    &db-environment
-    # Do not remove the "&db-password" from the end of the line below, it is important
-    # for Panel functionality.
-    MYSQL_PASSWORD: &db-password "22c85ce0202a3db49c7a6aced31c8616"
-    MYSQL_ROOT_PASSWORD: "d661a12cc92de0d6f86a66631afce6af"
-  panel:
-    &panel-environment
-    APP_URL: "https://${PANEL_DOMAIN}"
-    # A list of valid timezones can be found here: http://php.net/manual/en/timezones.php
-    APP_TIMEZONE: "America/Chicago"
-    APP_SERVICE_AUTHOR: "admin@sanare.dev"
-  mail:
-    &mail-environment
-    MAIL_FROM: "noreply@rains.cafe"
-    MAIL_DRIVER: "smtp"
-    MAIL_HOST: "smtp.gmail.com"
-    MAIL_PORT: "465"
-    MAIL_USERNAME: "${MAIL_USERNAME}"
-    MAIL_PASSWORD: "${MAIL_PASSWORD}"
-    MAIL_ENCRYPTION: "true"
 
 name: servers
 services:
@@ -60,7 +38,7 @@ services:
     volumes:
       - ${DATA_DIR}/jellyfin/config:/config
       - ${DATA_DIR}/jellyfin/cache:/cache
-      - /tmp/rancher-desktop/media:/media
+      - /mnt/media:/media
     restart: unless-stopped
     devices:
       # VAAPI Devices
@@ -94,131 +72,38 @@ services:
       #### overrides the FrameDeny option.
       - traefik.http.middlewares.jellyfin-mw.headers.customFrameOptionsValue='allow-from https://fin.sanare.dev'
 
-  panel:
-    image: ghcr.io/pterodactyl/panel:v1.11.5
-    restart: always
-    networks:
-      - traefik
-      - local
-    volumes:
-      - ${DATA_DIR}/pterodactyl/panel/var/:/app/var/
-      - ${DATA_DIR}/pterodactyl/panel/logs/:/app/storage/logs
-      - ${DATA_DIR}/pterodactyl/panel/nginx/:/etc/nginx/conf.d/
-    environment:
-      <<: [*panel-environment, *mail-environment]
-      DB_PASSWORD: *db-password
-      APP_ENV: "production"
-      APP_ENVIRONMENT_ONLY: "false"
-      CACHE_DRIVER: "redis"
-      SESSION_DRIVER: "redis"
-      QUEUE_DRIVER: "redis"
-      REDIS_HOST: "cache"
-      DB_HOST: "database"
-      TRUSTED_PROXIES: "*"
-    expose:
-      - 80
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.pterodactyl-panel.entrypoints=websecure
-      - traefik.http.routers.pterodactyl-panel.rule=Host(`${PANEL_DOMAIN}`)
-    # healthcheck:
-    #   test: ["CMD", "curl" ,"localhost"]
-    #   interval: 10s
-    #   timeout: 1m
-    depends_on:
-      database:
-        condition: service_healthy
+  # cafe:
+  #   image: ghcr.io/cecilia-sanare/cafe:latest
+  #   environment:
+  #     - RUST_LOG=debug
+  #     - DATABASE_URL=postgres://postgres:postgres@cafe-database:5432/cafe
+  #   tty: true
+  #   networks:
+  #     - traefik
+  #     - local
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.http.routers.cafe.entrypoints=websecure
+  #     - traefik.http.routers.cafe.rule=Host(`cafe.sanare.dev`)
+  #   expose:
+  #     - 3030
+  #   depends_on:
+  #     - cafe-database
 
-  wings:
-    image: ghcr.io/pterodactyl/wings:v1.11.8
-    restart: always
-    networks:
-      - traefik
-    ports:
-      - 2022:2022
-    expose:
-      - 443
-    tty: true
-    environment:
-      TZ: "CST"
-      WINGS_UID: 988
-      WINGS_GID: 988
-      WINGS_USERNAME: pterodactyl
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/containers/:/var/lib/docker/containers/
-      - /tmp/pterodactyl/:/tmp/pterodactyl/
-      - ${DATA_DIR}/pterodactyl/wings/etc/:/etc/pterodactyl/
-      - ${DATA_DIR}/pterodactyl/wings/logs:/var/log/pterodactyl/
-      - ${SERVERS_DATA_FULL_PATH}:${SERVERS_DATA_FULL_PATH}
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.pterodactyl-wings.entrypoints=websecure
-      - traefik.http.routers.pterodactyl-wings.rule=Host(`node.sanare.dev`)
-    env_file: .env
-    depends_on:
-      - panel
-
-  database:
-    image: mysql:8.0
-    restart: always
-    networks:
-      - local
-    volumes:
-      - ${DATA_DIR}/pterodactyl/database:/var/lib/mysql
-    environment:
-      <<: *db-environment
-      MYSQL_DATABASE: "panel"
-      MYSQL_USER: "pterodactyl"
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 1m
-
-  cache:
-    image: redis:alpine
-    networks:
-      - local
-    volumes:
-      - redis-cache:/data
-    restart: always
-
-  cafe:
-    image: ghcr.io/cecilia-sanare/cafe:latest
-    environment:
-      - RUST_LOG=debug
-      - DATABASE_URL=postgres://postgres:postgres@cafe-database:5432/cafe
-    tty: true
-    networks:
-      - traefik
-      - local
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.cafe.entrypoints=websecure
-      - traefik.http.routers.cafe.rule=Host(`cafe.sanare.dev`)
-    expose:
-      - 3030
-    depends_on:
-      - cafe-database
-
-  cafe-database:
-    image: postgres:16-alpine
-    restart: always
-    expose:
-      - 5432
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=cafe
-    networks:
-      - local
+  # cafe-database:
+  #   image: postgres:16-alpine
+  #   restart: always
+  #   expose:
+  #     - 5432
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=cafe
+  #   networks:
+  #     - local
 
 networks:
   traefik:
     external: false
   local:
     external: false
-
-volumes:
-  redis-cache:
-    driver: local
