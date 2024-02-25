@@ -7,6 +7,11 @@ if [ $UID -eq 0 ]; then
     exit 1
 fi
 
+if ! [ -x "$(command -v podman)" ]; then 
+    echo "Please install 'podman'!"
+    exit 1
+fi
+
 REPOS_DIR=$HOME/repos
 SELF_HOSTED_DIR=$REPOS_DIR/self-hosted
 
@@ -32,10 +37,10 @@ fi
 # Required by traefik
 chmod 600 $SELF_HOSTED_DIR/data/traefik/acme.json
 
-if [[ ! $(uname -v) =~ "NixOS" ]]; then
-    echo "Running outside of NixOS, adjusting unpriviledged port restrictions..."
+if [[ ! $(uname -v) =~ "NixOS" && $(uname -o) == "GNU/Linux" ]]; then
+    echo "Running on linux outside of NixOS, adjusting unpriviledged port restrictions..."
     sudo sysctl -w net.ipv4.ip_unprivileged_port_start=0
 fi
 
-# podman compose down -v
-# podman compose up -d
+podman compose down -v
+podman compose up -d
