@@ -4,7 +4,7 @@ name: servers
 services:
   traefik:
     image: traefik:v2.10
-    restart: unless-stopped
+    restart: always
     volumes:
       # So that Traefik can listen to the Docker events (read-only)
       - /run/user/1000/podman/podman.sock:/var/run/docker.sock:ro
@@ -40,7 +40,7 @@ services:
       - ${DATA_DIR}/jellyfin/config:/config
       - ${DATA_DIR}/jellyfin/cache:/cache
       - /mnt/media:/media
-    restart: unless-stopped
+    restart: always
     devices:
       # VAAPI Devices
       - /dev/dri/renderD128:/dev/dri/renderD128
