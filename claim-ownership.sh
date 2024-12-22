@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -eu
 
@@ -28,4 +28,4 @@ if [[ "$CHOICE" != "yes" ]]; then
     exit 1
 fi
 
-sudo chown $OWNER_UID:$OWNER_GID -R ./data/pterodactyl/wings/volumes/*
+sudo chown $OWNER_UID:$OWNER_GID -R ./data/*

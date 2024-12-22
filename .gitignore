@@ -7,3 +7,4 @@ data/*
 data/traefik/*
 !data/traefik/traefik.toml
 !data/traefik/traefik-provider.toml
+passwords/
