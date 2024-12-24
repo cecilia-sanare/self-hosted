@@ -170,7 +170,7 @@ services:
     environment:
       EULA: "TRUE"
       OVERRIDE_SERVER_PROPERTIES: "TRUE"
-      WHITELIST: "33ceed63-2539-4725-ad93-8c869aaf551e,fa8032ed-8b1f-4fad-a09c-0fe685332a46"
+      WHITELIST: "33ceed63-2539-4725-ad93-8c869aaf551e,fa8032ed-8b1f-4fad-a09c-0fe685332a46,4021e851-2b8c-4eca-a478-92f2ec11f067"
       ENFORCE_WHITELIST: "TRUE"
       ENFORCE_SECURE_PROFILE: "false"
       SYNC_CHUNK_WRITES: "false"
@@ -191,7 +191,7 @@ services:
       # QUILT_INSTALLER_VERSION: 0.11.1
       # QUILT_LOADER_VERSION: 0.27.1-beta.1
       VERSION: 1.21.4
-      MODRINTH_PROJECTS: simple-voice-chat:bukkit-2.5.27,backuper:3.1.2,freedomchat:RUlT5EFK,datapack:skinful:1.1,datapack:info-tools:1.2.7
+      MODRINTH_PROJECTS: simple-voice-chat:bukkit-2.5.27,backuper:3.1.2,freedomchat:RUlT5EFK,chunky:1.4.28,datapack:skinful:1.1,datapack:info-tools:1.2.7
       # MODRINTH_PROJECTS: fabric-api:0.112.1+1.21.4,fabric-language-kotlin:1.13.0+kotlin.2.1.0,immediatelyfast:1.3.3+1.21.4-fabric,lithium:t1FlWYl9,placeholder-api:2.5.1+1.21.3,simple-voice-chat:fabric-1.21.4-2.5.26,leaves-us-in-peace:1.7.2+MC1.21.2-1.21.4,cloth-config:17.0.142+fabric,x-backup:0.3.2+1.21.4,no-chat-reports:Fabric-1.21.4-v2.11.0,datapack:skinful:1.1
       VANILLATWEAKS_SHARECODE: d0RtSJ
       MOTD: Vanilla
