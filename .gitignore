@@ -8,3 +8,7 @@ data/traefik/*
 !data/traefik/traefik.toml
 !data/traefik/traefik-provider.toml
 passwords/
+
+PotatoPeeler-*.jar
+peeler.lrt
+peeler_logs/
