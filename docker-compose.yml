@@ -193,7 +193,7 @@ services:
       # Move to carpet on modrinth once 1.21.4 is uploaded
       # https://github.com/gnembon/fabric-carpet/issues/2015
       MODS: https://github.com/gnembon/fabric-carpet/releases/download/1.4.161/fabric-carpet-1.21.4-1.4.161+v241203.jar
-      VANILLATWEAKS_SHARECODE: d0RtSJ
+      VANILLATWEAKS_SHARECODE: d0RtSJ,JrE2PX
       MOTD: Vanilla
       ICON: https://raw.githubusercontent.com/rain-cafe-mc/servers/main/assets/icons/origins.png
       OVERRIDE_ICON: "TRUE"
