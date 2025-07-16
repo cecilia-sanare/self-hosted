@@ -26,7 +26,42 @@ services:
       # The Available Ports (forward your router's incoming ports to the ports on the host)
       - 80:80
       - 443:443
+      - 22:22
     env_file: .env
+
+  git:
+    image: docker.io/gitea/gitea:1.16.5
+    restart: unless-stopped
+    networks:
+      - traefik
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__repository__ENABLE_PUSH_CREATE_ORG=true
+      - GITEA__server__OFFLINE_MODE=true
+      - GITEA__server__ROOT_URL=https://git.sanare.dev/
+      # - GITEA__server__SSH_PORT=3022
+      - GITEA__service__DISABLE_REGISTRATION=true
+      - GITEA__service__REQUIRE_SIGNIN_VIEW=true
+      - GITEA__service__DEFAULT_ALLOW_CREATE_ORGANIZATION=false
+      - GITEA__service__DEFAULT_ENABLE_TIMETRACKING=false
+      - GITEA__oauth2_client__ENABLE_AUTO_REGISTRATION=true
+      - GITEA__oauth2_client__OPENID_CONNECT_SCOPES=email profile
+      - GITEA__oauth2_client__USERNAME=email
+      - GITEA__openid__ENABLE_OPENID_SIGNIN=false
+    # volumes:
+    #   - ./gitea:/data
+    #   - /home/git/.ssh/:/data/git/.ssh
+    expose:
+      - 3000
+      - 22
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.gitea.rule=Host(`git.sanare.dev`)
+      - traefik.http.services.gitea.loadBalancer.server.port=3000
+      - traefik.tcp.routers.gitea-ssh.entrypoints=ssh
+      - traefik.tcp.routers.gitea-ssh.rule=HostSNI(`*`)
+      - traefik.tcp.services.gitea-ssh.loadbalancer.server.port=22
 
   jellyfin:
     image: jellyfin/jellyfin

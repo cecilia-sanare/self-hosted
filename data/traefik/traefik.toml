@@ -48,6 +48,9 @@
       [[entryPoints.websecure.http.tls.domains]]
         main = "*.sanare.dev"
 
+  [entryPoints.ssh]
+    address = ":22"
+
 # Enable ACME (Let's Encrypt): automatic SSL.
 [certificatesresolvers.leresolver.acme]
   email = "admin@sanare.dev"
